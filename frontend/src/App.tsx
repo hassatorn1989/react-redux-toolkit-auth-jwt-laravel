@@ -1,65 +1,36 @@
-import { useState, lazy, Suspense } from 'react'
-import { Routes, Route, Link, BrowserRouter, useNavigate } from 'react-router-dom';
-// import Authentication from './middleware/Authentication';
-import { useSelector } from 'react-redux';
-import Authentication from './middleware/Authentication';
+import * as React from "react";
+import { Routes, Route, Outlet, Link, Navigate } from "react-router-dom";
+import axios from "axios";
+import PrivateRoutes from "./PrivateRoutes";
 
-const Login = lazy(() => import('./page/Login'))
-const Home = lazy(() => import('./page/Home'))
+axios.defaults.withCredentials = true;
+const Login = React.lazy(() => import("./pages/Auth/Login"));
+const Home = React.lazy(() => import("./pages/Home"));
+const About = React.lazy(() => import("./pages/About"));
 
 function App() {
-  // const { userInfo } = useSelector((state) => state.auth)
-  // const navigate = useNavigate()
   return (
-    <BrowserRouter>
-    <Routes>
-      <Route path="/" element={
-        <Suspense fallback={<div>Loading...</div>}>
-          <Login />
-        </Suspense>
-      } />
-        <Route element={<Authentication />}>
-          <Route path="/home" element={
-            <Suspense fallback={<div>Loading...</div>}>
+    <>
+      <Routes>
+        <Route path="/" element={
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <Login />
+          </React.Suspense>
+        } />
+        <Route element={<PrivateRoutes />}>
+          <Route path="/Home" element={
+            <React.Suspense fallback={<div>Loading...</div>}>
               <Home />
-            </Suspense>
+            </React.Suspense>
           } />
         </Route>
-        {/* {
-          () => {
-            if (userInfo) {
-              return <Route path="/home" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Home />
-                </Suspense>
-              } />
-            } else {
-              return <Route path="/" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Login />
-                </Suspense>
-              } />
-            }
-          }
-        } */}
-      
-      
-      {/* <Authentication>
-        <Route path="/home" element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <Home />
-          </Suspense>
+        <Route path="/about" element={
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <About />
+          </React.Suspense>
         } />
-      </Authentication> */}
-      <Route element={<Authentication />}>
-        <Route path="/home" element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <Home />
-          </Suspense>
-        } />
-      </Route>
-    </Routes>
-    </BrowserRouter>
+      </Routes>
+    </>
   )
 }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -21,12 +22,14 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['username', 'password']);
-
         if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ]);
         }
-
         return $this->respondWithToken($token);
+
     }
 
     /**
@@ -36,7 +39,17 @@ class AuthController extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        if (auth()->user()) {
+            return response()->json([
+                'status' => 'success',
+                'user' => auth()->user()
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ]);
+        }
     }
 
     /**
@@ -71,6 +84,7 @@ class AuthController extends Controller
     protected function respondWithToken($token)
     {
         return response()->json([
+            'status' => 'success',
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60,
