@@ -8,11 +8,12 @@ const Login = () => {
     const { isLoading, isLoggedIn } = useSelector((state: any) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { register, handleSubmit, reset } = useForm()
+    const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const submitForm = async (data: any) => {
         await dispatch(login(data));
         reset();
     }
+
     return (
         <>
             {
@@ -21,8 +22,10 @@ const Login = () => {
                         onSubmit={handleSubmit(submitForm)}
                     >
                         <h1>Login</h1>
-                        <input type="text" placeholder="Username" {...register('username')} /><br />
-                        <input type="password" placeholder="Password"  {...register('password')} /><br />
+                        <input type="text" placeholder="Username" {...register('username', 
+                        { required: true, maxLength: 20 })} /><br />
+                        <input type="password" placeholder="Password"  {...register('password'
+                        , { required: true, maxLength: 20 })} /><br />
                         <button type="submit">
                             {isLoading ? 'Loading...' : 'Login'}
                         </button>

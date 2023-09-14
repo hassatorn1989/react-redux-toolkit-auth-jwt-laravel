@@ -2,6 +2,7 @@ import * as React from "react";
 import { Routes, Route, Outlet, Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import PrivateRoutes from "./PrivateRoutes";
+import Layout from "./components/Layout";
 
 axios.defaults.withCredentials = true;
 const Login = React.lazy(() => import("./pages/Auth/Login"));
@@ -18,17 +19,21 @@ function App() {
           </React.Suspense>
         } />
         <Route element={<PrivateRoutes />}>
-          <Route path="/Home" element={
-            <React.Suspense fallback={<div>Loading...</div>}>
-              <Home />
-            </React.Suspense>
-          } />
+          
+          <Route element={<Layout />}>
+            <Route path="/Home" element={
+              <React.Suspense fallback={<div>Loading...</div>}>
+                <Home />
+              </React.Suspense>
+            } />
+            <Route path="/about" element={
+              <React.Suspense fallback={<div>Loading...</div>}>
+                <About />
+              </React.Suspense>
+            } />
+          </Route>
         </Route>
-        <Route path="/about" element={
-          <React.Suspense fallback={<div>Loading...</div>}>
-            <About />
-          </React.Suspense>
-        } />
+        
       </Routes>
     </>
   )

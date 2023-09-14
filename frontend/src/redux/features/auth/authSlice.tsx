@@ -2,14 +2,16 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import authService from '../../../services/authService';
 const initialState = {
     isLoggedIn: false,
-    isLoading: false
+    isLoading: false,
+    isAuth: true,
+    user: null
 }
 
 export const login = createAsyncThunk(
     "auth/login",
     async (data: any, thunkAPI) => {
         try {
-            let response = await authService.login(data);
+            const response = await authService.login(data);
             if (response.status === 200) {
                 if (response.data.status === "success") {
                     localStorage.setItem("access_token", response.data.access_token);
@@ -33,12 +35,14 @@ export const login = createAsyncThunk(
 export const me = createAsyncThunk(
     "auth/me",
     async (data: any, thunkAPI) => {
-        // let response = await authService.me();
-        
         try {
-            let response = await authService.me();
+            const response = await authService.me();
             if (response.status === 200) {
-                    console.log(response);
+                if (response.data.status === "success") {
+                    return response.data;
+                } else {
+                    return thunkAPI.rejectWithValue('Login failed');
+                }
             }
         } catch (error: any) {
             const message =
@@ -51,6 +55,55 @@ export const me = createAsyncThunk(
         }
     }
 );
+
+export const refreshToken = createAsyncThunk(
+    "auth/refreshToken",
+    async (data: any, thunkAPI) => {
+        try {
+            const response = await authService.refreshToken();
+            if (response.status === 200) {
+                if (response.data.status === "success") {
+                    localStorage.setItem("access_token", response.data.access_token);
+                    return response.data;
+                } else {
+                    return thunkAPI.rejectWithValue('Login failed');
+                }
+            }
+        } catch (error: any) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
+export const logout = createAsyncThunk(
+    "auth/logout",
+    async (data: any, thunkAPI) => {
+        try {
+            const response = await authService.logout();
+            if (response.status === 200) {
+                localStorage.removeItem('access_token');
+                return response.data;
+            }else{
+                return thunkAPI.rejectWithValue('Logout failed');
+            }
+        } catch (error: any) {
+            const message =
+                (error.response &&
+                    error.response.data &&
+                    error.response.data.message) ||
+                error.message ||
+                error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 
 const authSlice = createSlice({
     name: 'auth/login',
@@ -69,6 +122,24 @@ const authSlice = createSlice({
             state.isLoggedIn = false;
             state.isLoading = false;
         });
+
+        // Get User
+        builder.addCase(me.pending, (state) => {
+            state.isAuth = true;
+        }).addCase(me.fulfilled, (state, action) => {
+            state.isAuth = true;
+            state.user = action.payload;
+        }).addCase(me.rejected, (state, action) => {
+            state.isAuth = false;
+        })
+
+        // Logout User
+        builder.addCase(logout.pending, (state) => {
+        }).addCase(logout.fulfilled, (state, action) => {
+            state.isAuth = false;
+            state.isLoggedIn = false;
+        }).addCase(logout.rejected, (state, action) => {
+        })
     }
 });
 
@@ -77,5 +148,6 @@ export const {
 
 export const selectIsLoggedIn = (state: any) => state.auth.isLoggedIn
 export const selectUser = (state: any) => state.auth.user
+export const selectIsAuth = (state: any) => state.auth.isAuth
 
 export default authSlice.reducer
